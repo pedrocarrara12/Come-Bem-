@@ -20,6 +20,12 @@ public class Cliente {
     @OneToMany(mappedBy = "cliente",cascade = CascadeType.ALL)
     private List<Pedido> pedido= new ArrayList<>();
 
+
+    public Cliente(String nome, String cpf) {
+        this.nome = nome;
+        this.cpf = cpf;
+    }
+
     public Cliente(String nome, String cpf, List<Pedido> pedido) {
         this.nome = nome;
         this.cpf = cpf;
