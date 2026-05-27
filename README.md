@@ -17,6 +17,7 @@ O ComeBem controla clientes, mesas, cardapio e pedidos desde a abertura ate a fi
 - Docker Compose
 - Springdoc OpenAPI / Swagger UI
 - Frontend web responsivo servido pelo Spring Boot
+- Gemini API para atendimento virtual por IA
 
 ## Funcionalidades
 
@@ -96,6 +97,40 @@ http://localhost:8080
 
 Ele consome os mesmos endpoints REST da API e permite operar clientes, mesas, cardapio e pedidos sem um servidor frontend separado.
 
+## Atendimento Por IA
+
+O backend inclui um endpoint simples para atendimento virtual usando Gemini API. A chave deve ficar apenas no ambiente local ou no provedor de deploy:
+
+```env
+GEMINI_API_KEY=sua_chave_aqui
+GEMINI_MODEL=gemini-2.5-flash
+```
+
+Nunca versiona a chave real. O arquivo `.env.example` traz apenas placeholders.
+
+Endpoint:
+
+```http
+POST /atendimento/ia
+Content-Type: application/json
+```
+
+Corpo da requisicao:
+
+```json
+{
+  "mensagem": "Quais informacoes voce pode consultar para mim?"
+}
+```
+
+Resposta:
+
+```json
+{
+  "resposta": "..."
+}
+```
+
 ## Docker
 
 O arquivo `docker-compose.yml` fornece a API e o PostgreSQL. Credenciais do ambiente real nao devem ser versionadas; use variaveis `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT`, `APP_PORT` e `DATABASE_URL`.
@@ -116,6 +151,7 @@ Use `docker compose down -v` apenas quando quiser remover tambem os dados locais
 | Mesas | `POST /mesas`, `GET /mesas`, `GET /mesas/{id}`, `GET /mesas/status/{status}`, `PUT /mesas/{id}`, `PATCH /mesas/{id}/status`, `DELETE /mesas/{id}` |
 | Produtos | `POST /produtos`, `GET /produtos`, `GET /produtos/{id}`, `GET /produtos/categoria/{categoria}`, `GET /produtos/ativos`, `PUT /produtos/{id}`, `PATCH /produtos/{id}/ativar`, `PATCH /produtos/{id}/inativar`, `DELETE /produtos/{id}` |
 | Pedidos | `POST /pedidos`, `GET /pedidos`, `GET /pedidos/{id}`, `GET /pedidos/status/{status}`, `GET /pedidos/cliente/{clienteId}`, `GET /pedidos/mesa/{mesaId}`, `PATCH /pedidos/{id}/status`, `POST /pedidos/{id}/itens`, `DELETE /pedidos/{id}/itens/{itemId}`, `POST /pedidos/{id}/cancelar`, `POST /pedidos/{id}/finalizar` |
+| Atendimento IA | `POST /atendimento/ia` |
 
 ## Frontend
 
