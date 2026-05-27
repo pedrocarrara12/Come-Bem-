@@ -119,7 +119,7 @@ Corpo da requisicao:
 
 ```json
 {
-  "mensagem": "Quais informacoes voce pode consultar para mim?"
+  "mensagem": "Como esta o status do pedido id 32?"
 }
 ```
 
@@ -127,9 +127,21 @@ Resposta:
 
 ```json
 {
-  "resposta": "..."
+  "resposta": "O pedido 32 esta com status ..."
 }
 ```
+
+O atendimento usa a IA para identificar se a mensagem pede alguma consulta permitida ao sistema. Quando identifica, o backend consulta os cadastros antes de responder. Exemplos:
+
+- `Como esta o status do pedido id 32?`
+- `Qual o status da mesa 4?`
+- `Me mostre o produto 7`
+- `Quais produtos tem no cardapio?`
+- `Quais pedidos o cliente 3 possui?`
+- `Tem pedidos prontos?`
+- `Quais mesas estao livres?`
+
+A IA nao acessa o banco diretamente. Ela apenas escolhe uma acao permitida, como buscar pedido, mesa, produto, cliente ou cardapio; o backend executa a consulta.
 
 ## Docker
 

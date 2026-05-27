@@ -50,6 +50,12 @@ public class MesaService {
     }
 
     @Transactional(readOnly = true)
+    public MesaResponseDTO buscarPorNumero(Integer numero) {
+        return toResponse(mesaRepository.findByNumero(numero)
+                .orElseThrow(() -> new MesaNaoEncontradaException("Mesa nao encontrada")));
+    }
+
+    @Transactional(readOnly = true)
     public List<MesaResponseDTO> listarPorStatus(StatusMesa status) {
         return mesaRepository.findByStatus(status).stream().map(this::toResponse).toList();
     }

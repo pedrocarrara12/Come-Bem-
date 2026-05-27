@@ -746,7 +746,7 @@ tbody tr:last-child td {
 .toast-region {
     position: fixed;
     right: 22px;
-    bottom: 22px;
+    bottom: 96px;
     z-index: 10;
     display: grid;
     gap: 10px;
@@ -763,6 +763,151 @@ tbody tr:last-child td {
 
 .toast.error {
     background: var(--red);
+}
+
+.assistant-widget {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 11;
+}
+
+.assistant-toggle {
+    display: grid;
+    place-items: center;
+    width: 62px;
+    height: 62px;
+    border: 0;
+    border-radius: 50%;
+    color: #fff;
+    background: var(--forest-900);
+    box-shadow: var(--shadow);
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.assistant-panel {
+    position: absolute;
+    right: 0;
+    bottom: 76px;
+    display: none;
+    width: min(380px, calc(100vw - 32px));
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.assistant-widget.open .assistant-panel {
+    display: block;
+}
+
+.assistant-header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    color: #fff;
+    background: var(--forest-950);
+}
+
+.assistant-header strong,
+.assistant-header small {
+    display: block;
+}
+
+.assistant-header small {
+    margin-top: 3px;
+    color: #b9c8c2;
+    font-size: 12px;
+}
+
+.assistant-close {
+    border: 0;
+    color: #d7e1dc;
+    background: none;
+    font-size: 22px;
+    line-height: 1;
+}
+
+.assistant-messages {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    height: 318px;
+    padding: 16px;
+    overflow-y: auto;
+    background: #f7f6f0;
+}
+
+.assistant-message {
+    max-width: 86%;
+    padding: 11px 13px;
+    border-radius: 12px;
+    white-space: pre-wrap;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.assistant-message.bot {
+    justify-self: start;
+    color: var(--ink);
+    background: #fff;
+}
+
+.assistant-message.user {
+    justify-self: end;
+    color: #fff;
+    background: var(--forest-800);
+}
+
+.assistant-message.error {
+    color: var(--red);
+    background: var(--red-soft);
+}
+
+.assistant-message.loading {
+    color: var(--muted);
+}
+
+.assistant-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+}
+
+.assistant-form input {
+    min-width: 0;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.assistant-form input:focus {
+    outline: 2px solid rgba(31, 75, 56, .18);
+    border-color: var(--forest-800);
+}
+
+.assistant-form button {
+    min-height: 42px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 10px;
+    color: #fff;
+    background: var(--forest-900);
+    font-weight: 800;
+}
+
+.assistant-form.loading button,
+.assistant-form.loading input {
+    opacity: .68;
+    cursor: wait;
 }
 
 @media (max-width: 1040px) {
@@ -858,5 +1003,23 @@ tbody tr:last-child td {
 
     .table-panel {
         overflow-x: auto;
+    }
+
+    .assistant-widget {
+        right: 16px;
+        bottom: 16px;
+    }
+
+    .assistant-panel {
+        bottom: 70px;
+    }
+
+    .assistant-messages {
+        height: 280px;
+    }
+
+    .toast-region {
+        right: 16px;
+        bottom: 88px;
     }
 }

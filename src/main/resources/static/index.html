@@ -167,6 +167,28 @@
     <form id="entity-form" method="dialog"></form>
 </dialog>
 
+<section class="assistant-widget" id="assistant-widget" aria-label="Atendimento por IA">
+    <button class="assistant-toggle" id="assistant-toggle" type="button" aria-expanded="false" aria-controls="assistant-panel">
+        <span>IA</span>
+    </button>
+    <div class="assistant-panel" id="assistant-panel" aria-hidden="true">
+        <header class="assistant-header">
+            <div>
+                <strong>Atendimento IA</strong>
+                <small>Consulte pedidos, mesas e cardápio</small>
+            </div>
+            <button class="assistant-close" id="assistant-close" type="button" aria-label="Fechar atendimento">&times;</button>
+        </header>
+        <div class="assistant-messages" id="assistant-messages" aria-live="polite">
+            <div class="assistant-message bot">Olá, posso consultar informações do ComeBem para você.</div>
+        </div>
+        <form class="assistant-form" id="assistant-form">
+            <input id="assistant-input" name="mensagem" autocomplete="off" maxlength="1000" placeholder="Ex.: status da mesa 4" required>
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+</section>
+
 <div class="toast-region" id="toast-region" aria-live="polite"></div>
 <script type="module" src="/assets/app.js"></script>
 </body>

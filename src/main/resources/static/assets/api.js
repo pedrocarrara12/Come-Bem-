@@ -73,5 +73,11 @@ export const api = {
         }),
         cancelar: (id) => request(`/pedidos/${id}/cancelar`, { method: "POST" }),
         finalizar: (id) => request(`/pedidos/${id}/finalizar`, { method: "POST" })
+    },
+    atendimento: {
+        perguntar: (mensagem) => request("/atendimento/ia", {
+            method: "POST",
+            body: body({ mensagem })
+        })
     }
 };

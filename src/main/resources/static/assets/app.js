@@ -75,7 +75,14 @@ const elements = {
     clients: document.querySelector("#clients-table"),
     modal: document.querySelector("#form-modal"),
     form: document.querySelector("#entity-form"),
-    toastRegion: document.querySelector("#toast-region")
+    toastRegion: document.querySelector("#toast-region"),
+    assistantWidget: document.querySelector("#assistant-widget"),
+    assistantToggle: document.querySelector("#assistant-toggle"),
+    assistantClose: document.querySelector("#assistant-close"),
+    assistantPanel: document.querySelector("#assistant-panel"),
+    assistantMessages: document.querySelector("#assistant-messages"),
+    assistantForm: document.querySelector("#assistant-form"),
+    assistantInput: document.querySelector("#assistant-input")
 };
 
 function escapeHtml(value) {
@@ -107,6 +114,55 @@ function toast(message, type = "success") {
     item.textContent = message;
     elements.toastRegion.appendChild(item);
     window.setTimeout(() => item.remove(), 3600);
+}
+
+function setAssistantOpen(open) {
+    elements.assistantWidget.classList.toggle("open", open);
+    elements.assistantToggle.setAttribute("aria-expanded", String(open));
+    elements.assistantPanel.setAttribute("aria-hidden", String(!open));
+    if (open) {
+        window.setTimeout(() => elements.assistantInput.focus(), 120);
+    }
+}
+
+function assistantMessage(text, type = "bot") {
+    const item = document.createElement("div");
+    item.className = `assistant-message ${type}`;
+    item.textContent = text;
+    elements.assistantMessages.appendChild(item);
+    elements.assistantMessages.scrollTop = elements.assistantMessages.scrollHeight;
+    return item;
+}
+
+function setAssistantLoading(loading) {
+    elements.assistantForm.classList.toggle("loading", loading);
+    elements.assistantInput.disabled = loading;
+    elements.assistantForm.querySelector("button").disabled = loading;
+}
+
+async function submitAssistant(event) {
+    event.preventDefault();
+    const mensagem = elements.assistantInput.value.trim();
+    if (!mensagem) {
+        return;
+    }
+
+    elements.assistantInput.value = "";
+    assistantMessage(mensagem, "user");
+    const loading = assistantMessage("Consultando...", "bot loading");
+    setAssistantLoading(true);
+
+    try {
+        const response = await api.atendimento.perguntar(mensagem);
+        loading.remove();
+        assistantMessage(response.resposta || "Não consegui gerar uma resposta agora.", "bot");
+    } catch (error) {
+        loading.remove();
+        assistantMessage(error.message, "bot error");
+    } finally {
+        setAssistantLoading(false);
+        elements.assistantInput.focus();
+    }
 }
 
 async function carregarDados(showFeedback = false) {
@@ -620,6 +676,9 @@ document.addEventListener("click", (event) => {
 });
 
 elements.form.addEventListener("submit", submitForm);
+elements.assistantForm.addEventListener("submit", submitAssistant);
+elements.assistantToggle.addEventListener("click", () => setAssistantOpen(true));
+elements.assistantClose.addEventListener("click", () => setAssistantOpen(false));
 document.querySelector("#refresh-button").addEventListener("click", () => carregarDados(true));
 elements.contextAction.addEventListener("click", () => openForm(elements.contextAction.dataset.openForm || "pedido"));
 
