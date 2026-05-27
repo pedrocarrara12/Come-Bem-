@@ -1,16 +1,46 @@
 services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: come-bem-api
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-comebem}
+      POSTGRES_USER: ${POSTGRES_USER:-comebem}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-comebem_dev}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      JPA_SHOW_SQL: ${JPA_SHOW_SQL:-false}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+
   postgres:
     image: postgres:16
     container_name: come-bem-postgres
     restart: always
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-comebem}
+      POSTGRES_USER: ${POSTGRES_USER:-comebem}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-comebem_dev}
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  postgres-test:
+    image: postgres:16
+    container_name: come-bem-postgres-test
+    profiles:
+      - test
+    environment:
+      POSTGRES_DB: comebem_test
+      POSTGRES_USER: ${TEST_POSTGRES_USER:-comebem}
+      POSTGRES_PASSWORD: ${TEST_POSTGRES_PASSWORD:-comebem_dev}
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
 
 volumes:
   postgres_data:

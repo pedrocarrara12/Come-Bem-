@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#12372a">
+    <title>ComeBem | Gestão de Restaurante</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Fraunces:opsz,wght@9..144,600;9..144,700&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <a class="brand" href="#" aria-label="ComeBem - início">
+            <span class="brand-mark">CB</span>
+            <span>
+                <strong>ComeBem</strong>
+                <small>Restaurant OS</small>
+            </span>
+        </a>
+
+        <p class="sidebar-label">Operação</p>
+        <nav class="navigation" aria-label="Navegação principal">
+            <button class="nav-item active" data-section="dashboard">
+                <span class="nav-icon">▦</span> Visão geral
+            </button>
+            <button class="nav-item" data-section="pedidos">
+                <span class="nav-icon">◎</span> Pedidos
+            </button>
+            <button class="nav-item" data-section="mesas">
+                <span class="nav-icon">◇</span> Mesas
+            </button>
+            <button class="nav-item" data-section="produtos">
+                <span class="nav-icon">□</span> Cardápio
+            </button>
+            <button class="nav-item" data-section="clientes">
+                <span class="nav-icon">○</span> Clientes
+            </button>
+        </nav>
+
+        <div class="restaurant-card">
+            <p>Ambiente</p>
+            <strong>Salão principal</strong>
+            <span class="api-state" id="api-state">
+                <i></i> Verificando API
+            </span>
+        </div>
+    </aside>
+
+    <main class="workspace">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Painel administrativo</p>
+                <h1 id="page-title">Visão geral</h1>
+            </div>
+            <div class="topbar-actions">
+                <button class="button button-ghost" id="refresh-button" type="button">Atualizar</button>
+                <button class="button button-primary" id="context-action" type="button">Novo pedido</button>
+            </div>
+        </header>
+
+        <section class="view active" id="dashboard-view" aria-label="Visão geral">
+            <div class="hero">
+                <div>
+                    <p class="eyebrow">Atendimento em tempo real</p>
+                    <h2>Gerencie o salão com clareza.</h2>
+                    <p>Pedidos, mesas e cardápio conectados ao fluxo operacional do restaurante.</p>
+                </div>
+                <button class="button button-light" data-open-form="pedido">Abrir atendimento</button>
+            </div>
+
+            <div class="metrics" id="metrics"></div>
+
+            <div class="dashboard-grid">
+                <article class="panel">
+                    <div class="panel-heading">
+                        <div>
+                            <p class="eyebrow">Produção</p>
+                            <h3>Pedidos recentes</h3>
+                        </div>
+                        <button class="text-action" data-go-to="pedidos">Ver todos</button>
+                    </div>
+                    <div id="recent-orders" class="stack-list"></div>
+                </article>
+                <article class="panel">
+                    <div class="panel-heading">
+                        <div>
+                            <p class="eyebrow">Salão</p>
+                            <h3>Status das mesas</h3>
+                        </div>
+                        <button class="text-action" data-go-to="mesas">Gerenciar</button>
+                    </div>
+                    <div id="table-map" class="table-map"></div>
+                </article>
+            </div>
+        </section>
+
+        <section class="view" id="pedidos-view" aria-label="Pedidos">
+            <div class="section-toolbar">
+                <div class="filter-group" id="order-filters">
+                    <button class="chip active" data-filter="TODOS">Todos</button>
+                    <button class="chip" data-filter="ABERTO">Abertos</button>
+                    <button class="chip" data-filter="EM_PREPARO">Em preparo</button>
+                    <button class="chip" data-filter="PRONTO">Prontos</button>
+                    <button class="chip" data-filter="FINALIZADO">Finalizados</button>
+                </div>
+                <button class="button button-primary" data-open-form="pedido">Novo pedido</button>
+            </div>
+            <div id="orders-grid" class="orders-grid"></div>
+        </section>
+
+        <section class="view" id="mesas-view" aria-label="Mesas">
+            <div class="section-toolbar">
+                <p class="section-description">Controle capacidade e disponibilidade do salão.</p>
+                <button class="button button-primary" data-open-form="mesa">Cadastrar mesa</button>
+            </div>
+            <div id="mesas-grid" class="entity-grid"></div>
+        </section>
+
+        <section class="view" id="produtos-view" aria-label="Cardápio">
+            <div class="section-toolbar">
+                <p class="section-description">Itens comercializados e disponibilidade atual.</p>
+                <button class="button button-primary" data-open-form="produto">Novo produto</button>
+            </div>
+            <div class="panel table-panel">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Categoria</th>
+                        <th>Preço</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody id="products-table"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="view" id="clientes-view" aria-label="Clientes">
+            <div class="section-toolbar">
+                <p class="section-description">Base de clientes vinculada aos atendimentos.</p>
+                <button class="button button-primary" data-open-form="cliente">Novo cliente</button>
+            </div>
+            <div class="panel table-panel">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>CPF</th>
+                        <th>Contato</th>
+                        <th>Pedidos</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody id="clients-table"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<dialog class="modal" id="form-modal">
+    <form id="entity-form" method="dialog"></form>
+</dialog>
+
+<div class="toast-region" id="toast-region" aria-live="polite"></div>
+<script type="module" src="/assets/app.js"></script>
+</body>
+</html>
