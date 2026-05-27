@@ -1,51 +1,185 @@
 # ComeBem API
 
-API REST para gerenciamento do atendimento de um restaurante, desenvolvida em Java e Spring Boot com foco em regras de negocio, organizacao em camadas e uma base adequada para portifolio profissional.
+Sistema de gestao para restaurante desenvolvido com Java e Spring Boot. O projeto controla clientes, mesas, cardapio e pedidos em um fluxo completo de atendimento, com regras de negocio no backend, banco PostgreSQL, painel web responsivo e um agente de atendimento por IA integrado ao Gemini.
 
-## Objetivo
+A ideia do ComeBem e simular um ambiente real de restaurante: o atendente abre pedidos, acompanha o status da cozinha, gerencia mesas, mantem o cardapio atualizado e consulta informacoes operacionais em uma interface simples.
 
-O ComeBem controla clientes, mesas, cardapio e pedidos desde a abertura ate a finalizacao ou cancelamento. Totais e subtotais sao calculados pela aplicacao, preservando a consistencia financeira do atendimento.
+## Destaques Do Projeto
+
+- API REST com arquitetura em camadas.
+- Regras de negocio centralizadas em services.
+- Persistencia com Spring Data JPA e PostgreSQL.
+- Validacao de entrada com Bean Validation.
+- Tratamento padronizado de erros.
+- Frontend web servido pelo proprio Spring Boot.
+- Docker Compose para subir API e banco.
+- Swagger UI para documentacao interativa.
+- Agente de atendimento com Gemini API.
+- Leitura segura de variaveis por `.env`, sem versionar segredos.
+
+## Como Funciona
+
+O sistema foi dividido em camadas para deixar cada parte com uma responsabilidade clara:
+
+| Camada | Papel no projeto |
+| --- | --- |
+| `controller` | Recebe as requisicoes HTTP e define os contratos da API. |
+| `dto` | Transporta dados de entrada e saida sem expor diretamente as entidades. |
+| `service` | Concentra as regras de negocio, validacoes e transacoes. |
+| `repository` | Faz o acesso ao banco usando Spring Data JPA. |
+| `entity` | Representa as tabelas e relacionamentos do dominio. |
+| `exception` | Padroniza os erros retornados pela API. |
+
+Na pratica, isso facilita manutencao, testes e evolucao. Por exemplo: uma regra como "mesa com pedido ativo nao pode ser liberada manualmente" fica no service, nao espalhada pela interface ou pelo banco.
 
 ## Tecnologias
 
 - Java 21
 - Spring Boot 4
-- Spring Web MVC, Spring Data JPA e Bean Validation
-- PostgreSQL 16 para execucao local
-- PostgreSQL tambem para testes de integracao
+- Spring Web MVC
+- Spring Data JPA
+- Bean Validation
+- PostgreSQL 16
 - Maven Wrapper
 - Docker Compose
 - Springdoc OpenAPI / Swagger UI
-- Frontend web responsivo servido pelo Spring Boot
-- Gemini API para atendimento virtual por IA
+- HTML, CSS e JavaScript vanilla
+- Gemini API
 
 ## Funcionalidades
 
-- Cadastro, consulta, atualizacao e exclusao protegida de clientes.
-- Gerenciamento de mesas e disponibilidade operacional.
-- Cadastro e ativacao/inativacao de produtos do cardapio.
-- Abertura de pedidos com itens e total calculado automaticamente.
+### Clientes
+
+- Cadastro, consulta, atualizacao e exclusao.
+- CPF obrigatorio e unico.
+- Bloqueio de exclusao quando o cliente possui pedidos vinculados.
+
+### Mesas
+
+- Cadastro de mesas com numero, capacidade e status.
+- Consulta por status.
+- Controle de disponibilidade do salao.
+- Bloqueio de exclusao de mesa com pedido ativo.
+
+### Cardapio
+
+- Cadastro de produtos por categoria.
+- Ativacao e inativacao de itens.
+- Exclusao segura: se o produto ja foi usado em pedido, ele e inativado em vez de removido.
+
+### Pedidos
+
+- Abertura de pedido com cliente, mesa e itens.
+- Calculo automatico de subtotal e total.
 - Inclusao e remocao de itens enquanto o pedido esta em atendimento.
-- Evolucao controlada do status do pedido.
-- Padrao consistente de erros de validacao e regras de negocio.
+- Fluxo controlado de status.
+- Cancelamento e finalizacao com regras de consistencia.
 
-## Regras De Negocio
+## Fluxo De Status Do Pedido
 
-- O CPF do cliente e obrigatorio e unico; cliente com pedidos nao pode ser excluido.
-- Numero de mesa e unico; mesa inativa nao recebe pedido.
-- Ao abrir um pedido, a mesa passa para `OCUPADA`; ao encerrar o ultimo pedido ativo, volta a `LIVRE`.
-- Produto deve ter preco positivo e estar ativo para ser incluido em pedido.
-- Produto ja usado em pedido nao e removido: a operacao de exclusao o inativa.
-- Um pedido nasce com ao menos um item; quantidade, preco unitario, subtotal e total sao validados ou calculados no backend.
-- O fluxo permitido e `ABERTO -> EM_PREPARO -> PRONTO -> ENTREGUE -> FINALIZADO`.
-- `ABERTO` e `EM_PREPARO` tambem podem transitar para `CANCELADO`.
-- Pedido `FINALIZADO` ou `CANCELADO` nao aceita alteracao de itens.
+```text
+ABERTO -> EM_PREPARO -> PRONTO -> ENTREGUE -> FINALIZADO
+```
+
+Pedidos `ABERTO` e `EM_PREPARO` tambem podem ser cancelados.
+
+Um pedido `FINALIZADO` ou `CANCELADO` nao pode receber alteracoes de itens. Essa regra protege a consistencia financeira do atendimento.
+
+## Agente De Atendimento Com IA
+
+O projeto inclui um agente de atendimento integrado ao Gemini. Ele fica disponivel no frontend como um bot no canto da tela e tambem pode ser consumido pelo endpoint:
+
+```http
+POST /atendimento/ia
+Content-Type: application/json
+```
+
+Exemplo:
+
+```json
+{
+  "mensagem": "Qual o status da mesa 4?"
+}
+```
+
+Resposta:
+
+```json
+{
+  "resposta": "A mesa 4 esta livre e possui capacidade para 4 pessoas."
+}
+```
+
+### O ponto tecnico mais importante
+
+A IA nao acessa o banco diretamente.
+
+O fluxo e:
+
+1. O usuario envia uma pergunta em linguagem natural.
+2. O Gemini classifica a intencao em uma acao permitida.
+3. O backend executa a consulta real usando os services da aplicacao.
+4. O resultado e enviado como contexto para o Gemini.
+5. A IA responde de forma amigavel para o usuario.
+
+Isso deixa o agente mais flexivel sem abrir mao de seguranca. A IA pode interpretar frases como:
+
+- `Como esta o pedido 32?`
+- `Tem pedidos prontos?`
+- `Quais mesas estao livres?`
+- `Me mostra as bebidas`
+- `Quais produtos tem no cardapio?`
+- `Consulta o cliente 3`
+
+Mas ela so pode acionar consultas previamente autorizadas pelo backend, como buscar pedido, listar mesas por status, listar produtos ativos ou buscar cliente.
+
+## Seguranca De Configuracao
+
+Segredos nao devem ser versionados. A chave do Gemini fica no arquivo `.env`, que e ignorado pelo Git.
+
+Exemplo:
+
+```env
+GEMINI_API_KEY=sua_chave_aqui
+GEMINI_MODEL=gemini-2.5-flash
+GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta
+```
+
+O Spring carrega esse arquivo localmente com:
+
+```properties
+spring.config.import=optional:file:.env[.properties]
+```
+
+O repositorio mantem apenas o `.env.example`, com placeholders.
+
+## Frontend
+
+O frontend e uma SPA simples, sem etapa de build, servida em:
+
+```text
+src/main/resources/static
+```
+
+Ele consome os endpoints REST da propria API e permite:
+
+- Visualizar metricas do restaurante.
+- Gerenciar pedidos.
+- Gerenciar mesas.
+- Gerenciar produtos do cardapio.
+- Gerenciar clientes.
+- Consultar o agente de IA pelo bot fixo na tela.
+
+Essa escolha deixa o deploy mais simples: backend e frontend sobem juntos.
 
 ## Como Rodar Localmente
 
-Requisitos: Java 21 e Docker.
+Requisitos:
 
-1. Crie sua configuracao local:
+- Java 21
+- Docker
+
+1. Crie o arquivo de configuracao local:
 
 ```bash
 cp .env.example .env
@@ -57,7 +191,9 @@ No Windows PowerShell:
 Copy-Item .env.example .env
 ```
 
-2. Suba a aplicacao completa:
+2. Preencha as variaveis do `.env`, incluindo `GEMINI_API_KEY` se quiser usar o agente de IA.
+
+3. Suba tudo com Docker Compose:
 
 ```bash
 docker compose --env-file .env up --build
@@ -69,13 +205,27 @@ No Windows PowerShell:
 docker compose --env-file .env up --build
 ```
 
-3. Alternativamente, para rodar apenas o banco no Docker e a API pela IDE:
+A aplicacao fica disponivel em:
 
-```bash
-docker compose --env-file .env up -d
+```text
+http://localhost:8080
 ```
 
-Depois exporte as variaveis do `.env` no terminal ou configure-as na IDE e execute:
+A documentacao interativa fica em:
+
+```text
+http://localhost:8080/swagger-ui.html
+```
+
+## Rodando Pela IDE Ou Maven
+
+Se quiser rodar apenas o banco no Docker:
+
+```bash
+docker compose --env-file .env up -d postgres
+```
+
+Depois execute:
 
 ```bash
 ./mvnw spring-boot:run
@@ -87,97 +237,17 @@ No Windows:
 .\mvnw.cmd spring-boot:run
 ```
 
-A API fica disponivel em `http://localhost:8080`. A documentacao interativa esta em `http://localhost:8080/swagger-ui.html`.
+Como o projeto importa `optional:file:.env[.properties]`, as variaveis locais sao carregadas automaticamente quando o comando e executado a partir da raiz do projeto.
 
-O painel web fica disponivel na raiz da aplicacao:
+## Endpoints Principais
 
-```text
-http://localhost:8080
-```
-
-Ele consome os mesmos endpoints REST da API e permite operar clientes, mesas, cardapio e pedidos sem um servidor frontend separado.
-
-## Atendimento Por IA
-
-O backend inclui um endpoint simples para atendimento virtual usando Gemini API. A chave deve ficar apenas no ambiente local ou no provedor de deploy:
-
-```env
-GEMINI_API_KEY=sua_chave_aqui
-GEMINI_MODEL=gemini-2.5-flash
-```
-
-Nunca versiona a chave real. O arquivo `.env.example` traz apenas placeholders.
-
-Endpoint:
-
-```http
-POST /atendimento/ia
-Content-Type: application/json
-```
-
-Corpo da requisicao:
-
-```json
-{
-  "mensagem": "Como esta o status do pedido id 32?"
-}
-```
-
-Resposta:
-
-```json
-{
-  "resposta": "O pedido 32 esta com status ..."
-}
-```
-
-O atendimento usa a IA para identificar se a mensagem pede alguma consulta permitida ao sistema. Quando identifica, o backend consulta os cadastros antes de responder. Exemplos:
-
-- `Como esta o status do pedido id 32?`
-- `Qual o status da mesa 4?`
-- `Me mostre o produto 7`
-- `Quais produtos tem no cardapio?`
-- `Quais pedidos o cliente 3 possui?`
-- `Tem pedidos prontos?`
-- `Quais mesas estao livres?`
-
-A IA nao acessa o banco diretamente. Ela apenas escolhe uma acao permitida, como buscar pedido, mesa, produto, cliente ou cardapio; o backend executa a consulta.
-
-## Docker
-
-O arquivo `docker-compose.yml` fornece a API e o PostgreSQL. Credenciais do ambiente real nao devem ser versionadas; use variaveis `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_PORT`, `APP_PORT` e `DATABASE_URL`.
-
-Para desligar o banco:
-
-```bash
-docker compose down
-```
-
-Use `docker compose down -v` apenas quando quiser remover tambem os dados locais.
-
-## Endpoints
-
-| Recurso | Endpoints principais |
+| Recurso | Endpoints |
 | --- | --- |
 | Clientes | `POST /clientes`, `GET /clientes`, `GET /clientes/{id}`, `GET /clientes/cpf/{cpf}`, `PUT /clientes/{id}`, `DELETE /clientes/{id}` |
 | Mesas | `POST /mesas`, `GET /mesas`, `GET /mesas/{id}`, `GET /mesas/status/{status}`, `PUT /mesas/{id}`, `PATCH /mesas/{id}/status`, `DELETE /mesas/{id}` |
 | Produtos | `POST /produtos`, `GET /produtos`, `GET /produtos/{id}`, `GET /produtos/categoria/{categoria}`, `GET /produtos/ativos`, `PUT /produtos/{id}`, `PATCH /produtos/{id}/ativar`, `PATCH /produtos/{id}/inativar`, `DELETE /produtos/{id}` |
 | Pedidos | `POST /pedidos`, `GET /pedidos`, `GET /pedidos/{id}`, `GET /pedidos/status/{status}`, `GET /pedidos/cliente/{clienteId}`, `GET /pedidos/mesa/{mesaId}`, `PATCH /pedidos/{id}/status`, `POST /pedidos/{id}/itens`, `DELETE /pedidos/{id}/itens/{itemId}`, `POST /pedidos/{id}/cancelar`, `POST /pedidos/{id}/finalizar` |
 | Atendimento IA | `POST /atendimento/ia` |
-
-## Frontend
-
-O projeto inclui uma SPA sem etapa de build em `src/main/resources/static`, ideal para portifolio e deploy simples junto ao backend.
-
-Funcionalidades da interface:
-
-- Dashboard com pedidos ativos, mesas ocupadas, cardapio ativo e receita finalizada.
-- Cadastros de clientes, mesas e produtos.
-- Ativacao, inativacao e exclusao segura de produtos.
-- Abertura de pedidos com cliente, mesa e multiplos itens.
-- Avanco de status do pedido conforme o fluxo permitido.
-- Cancelamento, finalizacao, adicao e remocao de itens.
-- Mensagens de erro baseadas no retorno padronizado da API.
 
 ## Exemplos De Requisicoes
 
@@ -189,15 +259,6 @@ Criar cliente:
   "cpf": "12345678901",
   "telefone": "65999990000",
   "email": "ana@email.com"
-}
-```
-
-Criar mesa:
-
-```json
-{
-  "numero": 1,
-  "capacidade": 4
 }
 ```
 
@@ -236,7 +297,7 @@ Alterar status:
 }
 ```
 
-Erros retornam o formato:
+Formato de erro:
 
 ```json
 {
@@ -248,19 +309,6 @@ Erros retornam o formato:
 }
 ```
 
-## Estrutura De Pacotes
-
-```text
-br.com.comebem
-|-- controller   # contratos HTTP e codigos de resposta
-|-- dto          # entradas e saidas da API
-|-- entity       # mapeamento JPA
-|-- enums        # estados e categorias do dominio
-|-- exception    # erros e tratamento global
-|-- repository   # persistencia Spring Data
-`-- service      # regras de negocio e transacoes
-```
-
 ## Testes
 
 Execute:
@@ -269,9 +317,9 @@ Execute:
 ./mvnw test
 ```
 
-Os testes de integracao usam PostgreSQL para reproduzir o banco real da aplicacao. Configure um banco separado, por exemplo `comebem_test`, pelas variaveis `TEST_DATABASE_URL`, `TEST_POSTGRES_USER` e `TEST_POSTGRES_PASSWORD` antes de executar. Eles validam cadastro de cliente, criacao e totalizacao de pedido, bloqueio de produto inativo, fluxo de status e cancelamento.
+Os testes de integracao usam PostgreSQL para se aproximar do ambiente real da aplicacao.
 
-O Compose disponibiliza um PostgreSQL isolado e temporario na porta `5433` para a suite:
+Para subir um banco temporario de teste:
 
 ```bash
 docker compose --profile test up -d postgres-test
@@ -279,15 +327,29 @@ docker compose --profile test up -d postgres-test
 docker compose --profile test down
 ```
 
+## O Que Este Projeto Demonstra
+
+- Modelagem de dominio com regras reais.
+- Separacao de responsabilidades em uma API Spring.
+- Uso de DTOs para entrada e saida de dados.
+- Validacao e tratamento consistente de erros.
+- Integracao com banco relacional.
+- Docker para ambiente local reproduzivel.
+- Frontend integrado ao backend.
+- Consumo de API externa de IA.
+- Uso de IA com controle de acoes e sem acesso direto ao banco.
+- Cuidados com variaveis sensiveis e versionamento.
+
 ## Proximas Melhorias
 
-- Autenticacao e autorizacao com Spring Security e JWT.
+- Autenticacao e autorizacao com Spring Security.
 - Perfis de usuario para gerente, atendente e cozinha.
 - Migracoes versionadas com Flyway.
-- Paginacao, filtros adicionais e observabilidade.
+- Paginacao e filtros avancados.
+- Observabilidade com logs e metricas.
 - Pipeline CI com build e testes no GitHub Actions.
-- Container da aplicacao junto ao banco para publicacao.
+- Deploy em ambiente cloud.
 
 ## Autor
 
-Desenvolvido por Pedro Figueiredo como projeto de portifolio backend.
+Desenvolvido por Pedro Figueiredo como projeto de portfolio backend com integracao de IA.
